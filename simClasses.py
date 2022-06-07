@@ -2,7 +2,13 @@ import enum
 import time
 from simData import unitList
 
-
+#Easy method for remembering to sleep in ticks vs seconds
+global timePerSecond
+timePerSecond=10
+def dt(t):
+    return t/timePerSecond
+def tickSleep(ticks):
+    time.sleep(dt(ticks/10))
 
 class unitDef:
     def __init__(self, 
@@ -89,21 +95,28 @@ class Unit:
 
     def Build(self, unit):
 
-        unitToBuild = unitDef(unit)
+        #unitToBuild = unit #No need for creating a unitdef here! just use the unit reference
 
-        massConsumption = unitToBuild.Name.Mass / unitToBuild.Name.BuildTime * self.BuildPower
-        energyConsumption = unitToBuild.Name.Energy / unitToBuild.Name.BuildTime * self.BuildPower
-        print('massConsumption ', massConsumption)
+        massConsumption = unit.Mass / unit.BuildTime * self.TickBuild #If we are doing tenth-second ticks like FAF, we need to use TickBuild for accuracy
+        energyConsumption = unit.Energy / unit.BuildTime * self.TickBuild
+        print('massConsumption per tick ', massConsumption)
 
         self.CurrentMassConsumption = massConsumption
         self.CurrentEnergyConsumption = energyConsumption
-        print('time to sleep ', (massConsumption))
-        time.sleep(massConsumption)
-        self.create_consumption_unit(unitToBuild.Name)
+
+        timeForBuild = unit.BuildTime / self.TickBuild
+
+        print('time to sleep (ticks)', (timeForBuild))
+        tickSleep(timeForBuild)
+        
+        #Now we create the unit!
+        unitToBuild = Unit(unit)
+
+        self.create_consumption_unit(unitToBuild)
 
         self.CurrentMassConsumption = 0
         self.CurrentEnergyConsumption = 0
-        print('we have built a ', unitToBuild.Name.Name)
+        print('we have built a ', unitToBuild.Name)
 
         return unitToBuild
 
